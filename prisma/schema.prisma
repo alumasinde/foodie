@@ -12,6 +12,9 @@ model Restaurant {
   name        String   @db.VarChar(160)
   slug        String   @unique @db.VarChar(100)
   description String?  @db.Text
+  tagline      String?  @db.VarChar(180)
+  heroTitle    String?  @map("hero_title") @db.VarChar(180)
+  heroSubtitle String?  @map("hero_subtitle") @db.Text
   logoUrl     String?  @map("logo_url") @db.VarChar(500)
   heroImageUrl String? @map("hero_image_url") @db.VarChar(500)
   primaryColor String  @default("#078C99") @map("primary_color") @db.Char(7)
@@ -20,6 +23,11 @@ model Restaurant {
   whatsappNumber String? @map("whatsapp_number") @db.VarChar(30)
   email        String? @db.VarChar(190)
   address      String? @db.VarChar(255)
+  locationName String? @map("location_name") @db.VarChar(180)
+  googleMapsUrl String? @map("google_maps_url") @db.VarChar(600)
+  latitude     Decimal? @db.Decimal(10, 7)
+  longitude    Decimal? @db.Decimal(10, 7)
+  websiteUrl   String? @map("website_url") @db.VarChar(500)
   currency     String  @default("KES") @db.Char(3)
   timezone     String  @default("Africa/Nairobi") @db.VarChar(80)
   isPublished  Boolean @default(false) @map("is_published")
