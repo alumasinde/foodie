@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Container } from "@/components/ui/container";
 import { SectionHeading } from "@/components/ui/section-heading";
 
@@ -24,13 +25,13 @@ export default function HomePage() {
     <main>
       <header className="site-header">
         <Container className="site-header__inner">
-          <a className="brand" href="/" aria-label="Restaurant Platform home">
+          <Link className="brand" href="/" aria-label="Restaurant Platform home">
             <span className="brand__mark" aria-hidden="true">R</span>
             <span>
               <strong>Restaurant Platform</strong>
               <small>Good food starts here</small>
             </span>
-          </a>
+          </Link>
           <nav className="desktop-nav" aria-label="Main navigation">
             <a href="#features">Features</a>
             <a href="#foundation">Our approach</a>
@@ -87,7 +88,7 @@ export default function HomePage() {
                   </div>
                   <div className="food-row">
                     <div className="food-art food-art--two" aria-hidden="true"><span>🍛</span></div>
-                    <div><strong>Today's special</strong><small>Made with care</small><b>Price set by restaurant</b></div>
+                    <div><strong>Today&apos;s special</strong><small>Made with care</small><b>Price set by restaurant</b></div>
                   </div>
                 </div>
                 <div className="phone__bottom">⌂ &nbsp;&nbsp;&nbsp; Menu &nbsp;&nbsp;&nbsp; ♡ &nbsp;&nbsp;&nbsp; Contact</div>
@@ -134,7 +135,7 @@ export default function HomePage() {
         <Container className="approach__grid">
           <div>
             <p className="eyebrow">BUILT FOR REAL RESTAURANTS</p>
-            <h2>One platform.<br /><span>Each restaurant's identity.</span></h2>
+            <h2>One platform.<br /><span>Each restaurant&apos;s identity.</span></h2>
             <p className="approach__description">
               Restaurant names, branding, menus, prices, opening hours and contact details
               will be configured through data—not scattered through source code.
@@ -150,7 +151,7 @@ export default function HomePage() {
 
       <footer className="site-footer">
         <Container className="site-footer__inner">
-          <a className="brand brand--footer" href="/"><span className="brand__mark">R</span><strong>Restaurant Platform</strong></a>
+          <Link className="brand brand--footer" href="/"><span className="brand__mark">R</span><strong>Restaurant Platform</strong></Link>
           <p>A thoughtful digital foundation for hospitality.</p>
           <span>Built for the next phase.</span>
         </Container>
