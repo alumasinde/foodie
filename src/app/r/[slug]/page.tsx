@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { Container } from "@/components/ui/container";
 import { getPublishedRestaurantBySlug, normalizePhoneForWhatsApp, weekdayNames } from "@/lib/restaurant";
 import type { CSSProperties } from "react";
+import { OrderingReservations } from "@/components/restaurant/ordering-reservations";
 
 type PageProps = { params: Promise<{ slug: string }> };
 
@@ -35,11 +36,29 @@ export default async function RestaurantPublicPage({ params }: PageProps) {
     ? `https://wa.me/${whatsapp}?text=${encodeURIComponent(`Hello ${restaurant.name}, I'd like to make an enquiry.`)}`
     : null;
 
+  const menuCategories = restaurant.menuCategories.map((category) => ({
+    id: category.id,
+    name: category.name,
+    slug: category.slug,
+    items: category.items
+      .filter((item) => item.restaurantId === restaurant.id)
+      .map((item) => ({
+        id: item.id,
+        name: item.name,
+        description: item.description,
+        price: item.price.toString(),
+        imageUrl: item.imageUrl,
+        isAvailable: item.isAvailable,
+        isFeatured: item.isFeatured,
+        categoryId: item.categoryId,
+      })),
+  }));
+
   return (
     <main className="restaurant-site" style={theme}>
       <header className="restaurant-header">
         <Container className="restaurant-header__inner">
-          <a className="restaurant-brand" href={`/${restaurant.slug}`}>
+          <a className="restaurant-brand" href={`/r/${restaurant.slug}`}>
             {restaurant.logoUrl ? (
               // Restaurant logos are configurable URLs. Use an ordinary img to avoid requiring per-tenant remotePatterns.
               <img className="restaurant-brand__logo" src={restaurant.logoUrl} alt={`${restaurant.name} logo`} />
@@ -47,7 +66,7 @@ export default async function RestaurantPublicPage({ params }: PageProps) {
             <span><strong>{restaurant.name}</strong>{restaurant.tagline ? <small>{restaurant.tagline}</small> : null}</span>
           </a>
           <nav className="restaurant-nav" aria-label="Restaurant navigation">
-            <a href="#about">About</a><a href="#hours">Hours</a><a href="#contact">Contact</a>
+            <a href="#menu">Menu</a><a href="#about">About</a><a href="#hours">Hours</a><a href="#order">Order</a><a href="#reserve">Reserve</a><a href="#contact">Contact</a>
           </nav>
           {whatsappUrl ? <a className="restaurant-header__cta" href={whatsappUrl} target="_blank" rel="noreferrer">WhatsApp <span aria-hidden="true">↗</span></a> : null}
         </Container>
@@ -59,12 +78,24 @@ export default async function RestaurantPublicPage({ params }: PageProps) {
           <h1>{restaurant.heroTitle ?? restaurant.name}</h1>
           <p className="restaurant-hero__description">{restaurant.heroSubtitle ?? restaurant.description ?? "Discover our restaurant, explore what we offer, and get in touch."}</p>
           <div className="restaurant-hero__actions">
+            <a className="restaurant-button restaurant-button--accent" href="#menu">View menu <span aria-hidden="true">↓</span></a>
             {whatsappUrl ? <a className="restaurant-button restaurant-button--accent" href={whatsappUrl} target="_blank" rel="noreferrer">Chat with us <span aria-hidden="true">↗</span></a> : null}
             {restaurant.googleMapsUrl ? <a className="restaurant-button restaurant-button--outline" href={restaurant.googleMapsUrl} target="_blank" rel="noreferrer">Get directions <span aria-hidden="true">↗</span></a> : null}
           </div>
         </Container>
         {restaurant.heroImageUrl ? <span className="restaurant-hero__image-credit">Welcome to {restaurant.name}</span> : null}
       </section>
+
+      <Container>
+        <OrderingReservations
+          slug={restaurant.slug}
+          restaurantName={restaurant.name}
+          currency={restaurant.currency || "KES"}
+          whatsappUrl={whatsappUrl}
+          categories={menuCategories}
+          diningAreas={restaurant.diningAreas.map((area) => ({ id: area.id, name: area.name, description: area.description, capacity: area.capacity }))}
+        />
+      </Container>
 
       <section className="restaurant-info" id="about">
         <Container className="restaurant-info__grid">

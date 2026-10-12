@@ -7,6 +7,16 @@ export const getPublishedRestaurantBySlug = cache(async (slug: string) => {
     where: { slug: slug.toLowerCase(), isPublished: true },
     include: {
       openingHours: { orderBy: { dayOfWeek: "asc" } },
+      diningAreas: { where: { isActive: true }, orderBy: [{ sortOrder: "asc" }, { name: "asc" }] },
+      menuCategories: {
+        where: { isActive: true },
+        orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
+        include: {
+          items: {
+            orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
+          },
+        },
+      },
     },
   });
 });

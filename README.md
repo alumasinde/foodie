@@ -43,3 +43,31 @@ A new Phase 2 migration extends `restaurants`. Existing migration history is pre
 - `npm run db:migrate`
 - `npm run db:deploy`
 - `npm run db:studio`
+
+
+## Phase 3 — Public quick menu
+
+The public restaurant route `/r/<slug>` now renders a database-driven quick menu below the restaurant hero:
+- Active categories are ordered by `sortOrder`, then name.
+- Items display their category, price, description, image when configured, and availability.
+- Customers can filter by category and search by meal name, description or category.
+- Featured available items appear in a Popular section.
+- Available items offer WhatsApp enquiry links with the meal and displayed price in the message.
+- Sold-out items remain visible with a clear unavailable status.
+- Prices use `KSh` for `KES` restaurants; other configured ISO currency codes use locale currency formatting.
+- Restaurant-specific categories and menu items are fetched through the selected published restaurant record. Menu images are optional database URLs; no menu items, business names, or business codes are seeded or hardcoded.
+
+## Phase 3 migration
+
+A new migration `20261012140000_phase3_menu_catalog` creates `menu_categories` and `menu_items`. Apply it to the existing database with:
+
+```bash
+npm run db:generate
+npm run db:migrate
+```
+
+Do not reset the database or modify already-applied migrations. There is intentionally no demo menu seed: add categories and items to your own restaurant records in MySQL until the admin management phase is built.
+
+## Phase 5: Restaurant admin
+
+The restaurant admin workspace is available at `/admin/login`. See `PHASE-5-SCOPE.md` for the one-time owner setup, role permissions and deployment requirements. Admin APIs enforce restaurant membership and role permissions server-side. Configure `SESSION_SECRET` and a temporary `ADMIN_BOOTSTRAP_KEY` before bootstrapping the first owner.

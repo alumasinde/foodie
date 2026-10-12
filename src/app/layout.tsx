@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import "./admin.css";
 import "./restaurant.css";
 import { env } from "@/lib/env";
 

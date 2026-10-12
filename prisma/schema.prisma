@@ -34,8 +34,15 @@ model Restaurant {
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
-  settings     RestaurantSetting[]
-  openingHours OpeningHour[]
+  settings       RestaurantSetting[]
+  openingHours   OpeningHour[]
+  menuCategories MenuCategory[]
+  menuItems      MenuItem[]
+  diningAreas    DiningArea[]
+  orders         CustomerOrder[]
+  reservations   TableReservation[]
+  roles          RestaurantRole[]
+  memberships    RestaurantMembership[]
 
   @@map("restaurants")
 }
@@ -68,4 +75,168 @@ model OpeningHour {
   @@unique([restaurantId, dayOfWeek])
   @@index([restaurantId])
   @@map("opening_hours")
+}
+
+
+model MenuCategory {
+  id           String   @id @default(cuid()) @db.VarChar(30)
+  restaurantId String   @map("restaurant_id") @db.VarChar(30)
+  name         String   @db.VarChar(100)
+  slug         String   @db.VarChar(110)
+  description  String?  @db.VarChar(255)
+  sortOrder    Int      @default(0) @map("sort_order")
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  restaurant Restaurant  @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  items      MenuItem[]
+
+  @@unique([restaurantId, slug])
+  @@index([restaurantId, isActive, sortOrder])
+  @@map("menu_categories")
+}
+
+model MenuItem {
+  id           String   @id @default(cuid()) @db.VarChar(30)
+  restaurantId String   @map("restaurant_id") @db.VarChar(30)
+  categoryId   String   @map("category_id") @db.VarChar(30)
+  name         String   @db.VarChar(160)
+  description  String?  @db.VarChar(500)
+  price        Decimal  @db.Decimal(10, 2)
+  imageUrl     String?  @map("image_url") @db.VarChar(600)
+  isAvailable  Boolean  @default(true) @map("is_available")
+  isFeatured   Boolean  @default(false) @map("is_featured")
+  sortOrder    Int      @default(0) @map("sort_order")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  restaurant Restaurant    @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  orderItems CustomerOrderItem[]
+  category   MenuCategory  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@index([restaurantId, isAvailable, sortOrder])
+  @@index([categoryId, isAvailable, sortOrder])
+  @@map("menu_items")
+}
+
+
+model DiningArea {
+  id           String   @id @default(cuid()) @db.VarChar(30)
+  restaurantId String   @map("restaurant_id") @db.VarChar(30)
+  name         String   @db.VarChar(100)
+  description  String?  @db.VarChar(255)
+  capacity     Int?     @db.UnsignedSmallInt
+  isActive     Boolean  @default(true) @map("is_active")
+  sortOrder    Int      @default(0) @map("sort_order")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  reservations TableReservation[]
+  @@unique([restaurantId, name])
+  @@index([restaurantId, isActive, sortOrder])
+  @@map("dining_areas")
+}
+
+model CustomerOrder {
+  id             String   @id @default(cuid()) @db.VarChar(30)
+  reference      String   @unique @db.VarChar(20)
+  restaurantId   String   @map("restaurant_id") @db.VarChar(30)
+  customerName   String   @map("customer_name") @db.VarChar(120)
+  customerPhone  String   @map("customer_phone") @db.VarChar(30)
+  orderType      String   @map("order_type") @db.VarChar(20)
+  deliveryAddress String? @map("delivery_address") @db.VarChar(500)
+  notes          String?  @db.VarChar(500)
+  status         String   @default("received") @db.VarChar(30)
+  subtotal       Decimal  @db.Decimal(10, 2)
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+  restaurant     Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  items          CustomerOrderItem[]
+  @@index([restaurantId, status, createdAt])
+  @@index([customerPhone, createdAt])
+  @@map("customer_orders")
+}
+
+model CustomerOrderItem {
+  id          String   @id @default(cuid()) @db.VarChar(30)
+  orderId     String   @map("order_id") @db.VarChar(30)
+  menuItemId  String   @map("menu_item_id") @db.VarChar(30)
+  itemName    String   @map("item_name") @db.VarChar(160)
+  unitPrice   Decimal  @map("unit_price") @db.Decimal(10, 2)
+  quantity    Int      @db.UnsignedSmallInt
+  lineTotal   Decimal  @map("line_total") @db.Decimal(10, 2)
+  order       CustomerOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  menuItem    MenuItem @relation(fields: [menuItemId], references: [id], onDelete: Restrict)
+  @@index([orderId])
+  @@map("customer_order_items")
+}
+
+model TableReservation {
+  id              String   @id @default(cuid()) @db.VarChar(30)
+  reference       String   @unique @db.VarChar(20)
+  restaurantId    String   @map("restaurant_id") @db.VarChar(30)
+  diningAreaId    String?  @map("dining_area_id") @db.VarChar(30)
+  customerName    String   @map("customer_name") @db.VarChar(120)
+  customerPhone   String   @map("customer_phone") @db.VarChar(30)
+  guestCount      Int      @map("guest_count") @db.UnsignedSmallInt
+  reservationDate DateTime @map("reservation_date") @db.DateTime(0)
+  notes           String?  @db.VarChar(500)
+  status          String   @default("requested") @db.VarChar(30)
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+  restaurant      Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  diningArea      DiningArea? @relation(fields: [diningAreaId], references: [id], onDelete: SetNull)
+  @@index([restaurantId, reservationDate, status])
+  @@index([customerPhone, createdAt])
+  @@map("table_reservations")
+}
+
+
+model User {
+  id           String   @id @default(cuid()) @db.VarChar(30)
+  email        String   @unique @db.VarChar(190)
+  firstName    String   @map("first_name") @db.VarChar(70)
+  lastName     String   @map("last_name") @db.VarChar(70)
+  passwordHash String   @map("password_hash") @db.VarChar(255)
+  isActive     Boolean  @default(true) @map("is_active")
+  lastLoginAt  DateTime? @map("last_login_at")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+  memberships  RestaurantMembership[]
+  @@index([isActive])
+  @@map("users")
+}
+
+model RestaurantRole {
+  id           String   @id @default(cuid()) @db.VarChar(30)
+  restaurantId String   @map("restaurant_id") @db.VarChar(30)
+  name         String   @db.VarChar(80)
+  key          String   @db.VarChar(60)
+  permissions  String   @db.Text
+  isSystem     Boolean  @default(false) @map("is_system")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  memberships  RestaurantMembership[]
+  @@unique([restaurantId, key])
+  @@index([restaurantId])
+  @@map("restaurant_roles")
+}
+
+model RestaurantMembership {
+  id           String   @id @default(cuid()) @db.VarChar(30)
+  restaurantId String   @map("restaurant_id") @db.VarChar(30)
+  userId       String   @map("user_id") @db.VarChar(30)
+  roleId       String   @map("role_id") @db.VarChar(30)
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  user         User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role         RestaurantRole @relation(fields: [roleId], references: [id], onDelete: Restrict)
+  @@unique([restaurantId, userId])
+  @@index([userId, isActive])
+  @@index([restaurantId, roleId])
+  @@map("restaurant_memberships")
 }
