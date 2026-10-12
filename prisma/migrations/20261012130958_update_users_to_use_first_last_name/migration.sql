@@ -1,3 +1,4 @@
--- AlterTable
-ALTER TABLE `users` ALTER COLUMN `first_name` DROP DEFAULT,
-    ALTER COLUMN `last_name` DROP DEFAULT;
+-- Historical no-op migration.
+-- The former SQL altered `users` before the `users` table was created by
+-- 20261012160000_phase5_admin_access. The actual first_name/last_name conversion
+-- is correctly performed by 20261012170000_user_first_last_names.

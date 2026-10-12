@@ -32,7 +32,7 @@ model Restaurant {
   timezone     String  @default("Africa/Nairobi") @db.VarChar(80)
   isPublished  Boolean @default(false) @map("is_published")
   createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at")
 
   settings       RestaurantSetting[]
   openingHours   OpeningHour[]
@@ -53,7 +53,7 @@ model RestaurantSetting {
   key          String   @db.VarChar(100)
   value        String?  @db.Text
   createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at")
 
   restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
 
@@ -71,6 +71,7 @@ model OpeningHour {
   isClosed     Boolean  @default(false) @map("is_closed")
   restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
   createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at")
 
   @@unique([restaurantId, dayOfWeek])
   @@index([restaurantId])
@@ -87,7 +88,7 @@ model MenuCategory {
   sortOrder    Int      @default(0) @map("sort_order")
   isActive     Boolean  @default(true) @map("is_active")
   createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at")
 
   restaurant Restaurant  @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
   items      MenuItem[]
@@ -109,7 +110,7 @@ model MenuItem {
   isFeatured   Boolean  @default(false) @map("is_featured")
   sortOrder    Int      @default(0) @map("sort_order")
   createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at")
 
   restaurant Restaurant    @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
   orderItems CustomerOrderItem[]
@@ -130,7 +131,7 @@ model DiningArea {
   isActive     Boolean  @default(true) @map("is_active")
   sortOrder    Int      @default(0) @map("sort_order")
   createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at")
   restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
   reservations TableReservation[]
   @@unique([restaurantId, name])
@@ -150,7 +151,7 @@ model CustomerOrder {
   status         String   @default("received") @db.VarChar(30)
   subtotal       Decimal  @db.Decimal(10, 2)
   createdAt      DateTime @default(now()) @map("created_at")
-  updatedAt      DateTime @updatedAt @map("updated_at")
+  updatedAt      DateTime @default(now()) @updatedAt @map("updated_at")
   restaurant     Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
   items          CustomerOrderItem[]
   @@index([restaurantId, status, createdAt])
@@ -166,6 +167,8 @@ model CustomerOrderItem {
   unitPrice   Decimal  @map("unit_price") @db.Decimal(10, 2)
   quantity    Int      @db.UnsignedSmallInt
   lineTotal   Decimal  @map("line_total") @db.Decimal(10, 2)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
   order       CustomerOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
   menuItem    MenuItem @relation(fields: [menuItemId], references: [id], onDelete: Restrict)
   @@index([orderId])
@@ -184,7 +187,7 @@ model TableReservation {
   notes           String?  @db.VarChar(500)
   status          String   @default("requested") @db.VarChar(30)
   createdAt       DateTime @default(now()) @map("created_at")
-  updatedAt       DateTime @updatedAt @map("updated_at")
+  updatedAt       DateTime @default(now()) @updatedAt @map("updated_at")
   restaurant      Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
   diningArea      DiningArea? @relation(fields: [diningAreaId], references: [id], onDelete: SetNull)
   @@index([restaurantId, reservationDate, status])
@@ -202,7 +205,7 @@ model User {
   isActive     Boolean  @default(true) @map("is_active")
   lastLoginAt  DateTime? @map("last_login_at")
   createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at")
   memberships  RestaurantMembership[]
   @@index([isActive])
   @@map("users")
@@ -213,15 +216,39 @@ model RestaurantRole {
   restaurantId String   @map("restaurant_id") @db.VarChar(30)
   name         String   @db.VarChar(80)
   key          String   @db.VarChar(60)
-  permissions  String   @db.Text
   isSystem     Boolean  @default(false) @map("is_system")
   createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at")
   restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
   memberships  RestaurantMembership[]
+  rolePermissions RolePermission[]
   @@unique([restaurantId, key])
   @@index([restaurantId])
-  @@map("restaurant_roles")
+  @@map("roles")
+}
+
+model Permission {
+  key         String   @id @db.VarChar(80)
+  name        String   @db.VarChar(120)
+  description String?  @db.VarChar(255)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
+  roles       RolePermission[]
+
+  @@map("permissions")
+}
+
+model RolePermission {
+  roleId       String   @map("role_id") @db.VarChar(30)
+  permissionKey String  @map("permission_key") @db.VarChar(80)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at")
+  role         RestaurantRole @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionKey], references: [key], onDelete: Cascade)
+
+  @@id([roleId, permissionKey])
+  @@index([permissionKey])
+  @@map("role_permissions")
 }
 
 model RestaurantMembership {
@@ -231,12 +258,12 @@ model RestaurantMembership {
   roleId       String   @map("role_id") @db.VarChar(30)
   isActive     Boolean  @default(true) @map("is_active")
   createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at")
   restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
   user         User @relation(fields: [userId], references: [id], onDelete: Cascade)
   role         RestaurantRole @relation(fields: [roleId], references: [id], onDelete: Restrict)
   @@unique([restaurantId, userId])
   @@index([userId, isActive])
   @@index([restaurantId, roleId])
-  @@map("restaurant_memberships")
+  @@map("user_roles")
 }

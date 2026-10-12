@@ -48,11 +48,10 @@ export async function authorize(slug: string, permission: string) {
   if (!user) return { error: NextResponse.json({ error: "Please sign in." }, { status: 401 }) };
   const membership = await prisma.restaurantMembership.findFirst({
     where: { userId: user.id, isActive: true, restaurant: { slug }, role: { restaurant: { slug } } },
-    include: { role: true, restaurant: { select: { id: true, slug: true, name: true } } },
+    include: { role: { include: { rolePermissions: { include: { permission: { select: { key: true } } } } }, restaurant: { select: { id: true, slug: true, name: true } } },
   });
   if (!membership) return { error: NextResponse.json({ error: "You do not have access to this restaurant." }, { status: 403 }) };
-  let permissions: string[] = [];
-  try { permissions = JSON.parse(membership.role.permissions) as string[]; } catch { /* deny on invalid role data */ }
+  const permissions = membership.role.rolePermissions.map((rp) => rp.permission.key);
   if (!permissions.includes("*") && !permissions.includes(permission)) return { error: NextResponse.json({ error: "Your role does not permit this action." }, { status: 403 }) };
   return { user, membership };
 }
